@@ -1,9 +1,9 @@
 # Reliese Laravel Model Generator
-[![Build Status](https://travis-ci.org/reliese/laravel.svg?branch=master)](https://travis-ci.org/reliese/laravel)
-[![Latest Stable Version](https://poser.pugx.org/reliese/laravel/v/stable)](https://packagist.org/packages/reliese/laravel)
-[![Total Downloads](https://poser.pugx.org/reliese/laravel/downloads)](https://packagist.org/packages/reliese/laravel)
-[![Latest Unstable Version](https://poser.pugx.org/reliese/laravel/v/unstable)](https://packagist.org/packages/reliese/laravel)
-[![License](https://poser.pugx.org/reliese/laravel/license)](https://packagist.org/packages/reliese/laravel)
+[![Latest Stable Version](https://poser.pugx.org/airsane/laravel_model_generator/v/stable)](https://packagist.org/packages/airsane/laravel_model_generator)
+[![Total Downloads](https://poser.pugx.org/airsane/laravel_model_generator/downloads)](https://packagist.org/packages/airsane/laravel_model_generator)
+[![Latest Unstable Version](https://poser.pugx.org/airsane/laravel_model_generator/v/unstable)](https://packagist.org/packages/airsane/laravel_model_generator)
+[![License](https://poser.pugx.org/airsane/laravel_model_generator/license)](https://packagist.org/packages/airsane/laravel_model_generator)
+
 
 Reliese Laravel Model Generator aims to speed up the development process of Laravel applications by 
 providing some convenient code-generation capabilities. 
@@ -13,14 +13,14 @@ to automatically generate Models that have correctly typed properties, along wit
 ## How does it work?
 
 This package expects that you are using Laravel 5.1 or above.
-You will need to import the `reliese/laravel` package via composer:
+You will need to import the ` airsane/laravel_model_generator` package via composer:
 
 ### Configuration
 
 It is recommended that this package should only be used on a local environment for security reasons. You should install it via composer using the --dev option like this:
 
 ```shell
-composer require reliese/laravel --dev
+composer require airsane/laravel_model_generator --dev
 ```
 
 Add the `models.php` configuration file to your `config` directory and clear the config cache:
@@ -67,7 +67,7 @@ php artisan code:models --schema=shop
 ### Customizing Model Scaffolding
 
 To change the scaffolding behaviour you can make `config/models.php` configuration file
-fit your database needs. [Check it out](https://github.com/reliese/laravel/blob/master/config/models.php) ;-)
+fit your database needs. [Check it out](https://github.com/airsane/laravel_model_generator/blob/master/config/models.php) ;-)
 
 ### Tips
 
@@ -86,4 +86,14 @@ to decide whether this approach gives value to your project :-)
 
 #### Support
 
-For the time being, this package supports MySQL, PostgreSQL and SQLite databases. Support for other databases are encouraged to be added through pull requests.
+For the time being, this package supports MySQL, PostgreSQL,SQLite and SQL Server databases. Support for other databases are encouraged to be added through pull requests.
+
+### Original Author
+
+This package is a fork of [reliese/laravel](https://github.com/reliese/laravel) with some modifications to support SQL Server.
+
+### Contributors
+
+- [@airsane](https://github.com/airsane)
+- [@reliese](https://github.com/reliese)
+
