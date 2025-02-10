@@ -2,7 +2,7 @@
     "name": "airsane/laravel_model_generator",
     "description": "Reliese Components for Laravel Framework code generation.",
     "keywords": ["reliese", "laravel"],
-    "homepage": "http://cristianllanos.com",
+    "homepage": "https://github.com/Airsane/laravel_model_generator",
     "support": {
         "issues": "https://github.com/Airsane/laravel_model_generator/issues",
         "source": "https://github.com/Airsane/laravel_model_generator"
