@@ -116,7 +116,8 @@ class Column implements \Reliese\Meta\Column
 	 */
 	protected function parseAutoincrement(Fluent $attributes)
 	{
-		$attributes['autoincrement'] = $this->get('is_identity') === 1;
+		$isIdentity = $this->get('is_identity');
+		$attributes['autoincrement'] = $isIdentity !== null && (int)$isIdentity === 1;
 	}
 
 	/**

@@ -2,394 +2,324 @@
 
 namespace Reliese\Meta\SqlServer;
 
-use Illuminate\Database\SqlServerConnection;
 use Illuminate\Support\Facades\Config;
-use InvalidArgumentException;
 use Reliese\Meta\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 
-/**
- * SQLServer Schema Metadata Handling
- * Adapted from PostgreSQL Schema implementation
- * Date: 2024-12-07
- */
 class Schema implements \Reliese\Meta\Schema
 {
-	/**
-	 * @var string
-	 */
-	protected $schema;
+    /**
+     * @var string
+     */
+    protected $schema;
 
-	/**
-	 * @var SqlServerConnection
-	 */
-	protected $connection;
+    /**
+     * @var string
+     */
+    protected $schema_database;
 
-	/**
-	 * @var bool
-	 */
-	protected $loaded = false;
+    /**
+     * @var \Illuminate\Database\Connection
+     */
+    protected $connection;
 
-	/**
-	 * @var Blueprint[]
-	 */
-	protected $tables = [];
+    /**
+     * @var bool
+     */
+    protected $loaded = false;
 
-	/**
-	 * @var string
-	 */
-	protected $schema_database;
+    /**
+     * @var \Reliese\Meta\Blueprint[]
+     */
+    protected $tables = [];
 
-	/**
-	 * Schema constructor.
-	 *
-	 * @param string $schema
-	 * @param SqlServerConnection $connection
-	 */
-	public function __construct(string $schema, SqlServerConnection $connection)
-	{
-		$this->schema_database = Config::get("database.connections.sqlsrv.schema", 'dbo');
-		$this->schema = $schema;
-		$this->connection = $connection;
+    /**
+     * Schema constructor.
+     *
+     * @param string $schema
+     * @param \Illuminate\Database\Connection $connection
+     * @param string $schema_database
+     */
+    public function __construct($schema, $connection)
+    {
+        $this->schema = $schema;
+        $this->connection = $connection;
+        $this->schema_database = Config::get("database.connections.sqlsrv.schema", 'dbo');;
 
-		$this->load();
-	}
+        $this->load();
+    }
 
-	/**
-	 * Loads schema's tables' information from the database.
-	 */
-	protected function load(): void
-	{
-		$tables = $this->fetchTables();
-		foreach ($tables as $table) {
-			$blueprint = new Blueprint($this->connection->getName(), $this->schema, $table);
-			$this->fillColumns($blueprint);
-			$this->fillConstraints($blueprint);
-			$this->tables[$table] = $blueprint;
-		}
-		$this->loaded = true;
-	}
+    /**
+     * @return \Doctrine\DBAL\Schema\AbstractSchemaManager
+     */
+    public function manager()
+    {
+        return $this->connection->getDoctrineSchemaManager();
+    }
 
-	/**
-	 * Fetch tables for the current schema
-	 *
-	 * @return array
-	 */
-	protected function fetchTables(): array
-	{
-		$rows = $this->arraify($this->connection->select(
-			"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES " .
-			"WHERE TABLE_SCHEMA = '$this->schema_database' AND TABLE_TYPE = 'BASE TABLE'"
-		));
+    /**
+     * Loads schema's tables' information from the database.
+     */
+    protected function load()
+    {
+        $tables = $this->fetchTables($this->schema);
+        foreach ($tables as $table) {
+            $blueprint = new Blueprint($this->connection->getName(), $this->schema, $table);
+            $this->fillColumns($blueprint);
+            $this->fillConstraints($blueprint);
+            $this->tables[$table] = $blueprint;
+        }
+        $this->loaded = true;
+    }
 
-		return array_column($rows, 'TABLE_NAME');
-	}
+    /**
+     * @param string $schema
+     *
+     * @return array
+     */
+    protected function fetchTables()
+    {
+        $rows = $this->arraify($this->connection->select(
+            "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '{$this->schema_database}'"
+        ));
 
-	/**
-	 * Fill columns for a given blueprint
-	 *
-	 * @param Blueprint $blueprint
-	 */
-	protected function fillColumns(Blueprint $blueprint): void
-	{
-		$rows = $this->arraify($this->connection->select(
-			"SELECT c.*, COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA + '.' + c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as is_identity " .
-			"FROM INFORMATION_SCHEMA.COLUMNS c " .
-			"WHERE c.TABLE_SCHEMA = '$this->schema_database' " .
-			"AND c.TABLE_NAME = " . $this->wrap($blueprint->table())
-		));
+        return array_column($rows, 'TABLE_NAME');
+    }
 
-		foreach ($rows as $column) {
-			$blueprint->withColumn(
-				$this->parseColumn($column)
-			);
-		}
-	}
+    /**
+     * @param \Reliese\Meta\Blueprint $blueprint
+     */
+    protected function fillColumns(Blueprint $blueprint)
+    {
+        $rows = $this->arraify($this->connection->select(
+            'SELECT c.*, CASE WHEN OBJECTPROPERTY(OBJECT_ID(c.TABLE_SCHEMA + \'.\' + c.TABLE_NAME), \'TableHasIdentity\') = 1 AND
+            COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA + \'.\' + c.TABLE_NAME), c.COLUMN_NAME, \'IsIdentity\') = 1
+            THEN 1 ELSE 0 END AS IS_IDENTITY
+            FROM INFORMATION_SCHEMA.COLUMNS c
+            WHERE c.TABLE_NAME = '.$this->wrap($blueprint->table()).' AND c.TABLE_SCHEMA = \''.$this->schema_database.'\''
+        ));
 
-	/**
-	 * Parse column metadata
-	 *
-	 * @param array $metadata
-	 * @return Fluent
-	 */
-	protected function parseColumn(array $metadata): Fluent
-	{
-		return (new Column($metadata))->normalize();
-	}
+        foreach ($rows as $column) {
+            $blueprint->withColumn(
+                $this->parseColumn($column)
+            );
+        }
+    }
 
-	/**
-	 * Fill constraints for a given blueprint
-	 *
-	 * @param Blueprint $blueprint
-	 */
-	protected function fillConstraints(Blueprint $blueprint): void
-	{
-		$relations = $this->fetchTableRelations($blueprint->table());
-		$this->fillPrimaryKey($relations, $blueprint);
-		$this->fillRelations($relations, $blueprint);
-		$this->fillIndexes($blueprint);
-	}
+    /**
+     * @param array $metadata
+     *
+     * @return \Illuminate\Support\Fluent
+     */
+    protected function parseColumn($metadata)
+    {
+        return (new Column($metadata))->normalize();
+    }
 
-	/**
-	 * Fetch table relations
-	 *
-	 * @param string $tableName
-	 * @return array
-	 */
-	protected function fetchTableRelations(string $tableName): array
-	{
-		$sql = "
-        SELECT 
-		c1.name AS column_name,
-		OBJECT_NAME(fkc.referenced_object_id) AS referenced_table,
-		c2.name AS referenced_column,
-		fk.name AS constraint_name,
-		CASE 
-			WHEN kc.type = 'PK' THEN 'p'
-			WHEN i.is_unique = 1 THEN 'u'
-			ELSE 'f'
-		END AS constraint_type
-		FROM sys.foreign_keys fk
-		INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
-		INNER JOIN sys.columns c1 ON fkc.parent_object_id = c1.object_id AND fkc.parent_column_id = c1.column_id
-		INNER JOIN sys.columns c2 ON fkc.referenced_object_id = c2.object_id AND fkc.referenced_column_id = c2.column_id
-		INNER JOIN sys.tables t ON t.object_id = fk.parent_object_id
-		LEFT JOIN sys.key_constraints kc ON fk.parent_object_id = kc.parent_object_id AND kc.type = 'PK'
-		LEFT JOIN sys.indexes i ON i.object_id = fk.parent_object_id AND i.is_unique = 1
-		WHERE t.name = '$tableName' AND SCHEMA_NAME(t.schema_id) = '$this->schema_database';
-		";
+    /**
+     * @param \Reliese\Meta\Blueprint $blueprint
+     */
+    protected function fillConstraints(Blueprint $blueprint)
+    {
+        // Get primary keys
+        $primaryKeys = $this->getPrimaryKeys($blueprint);
+        if (!empty($primaryKeys)) {
+            $blueprint->withPrimaryKey(new Fluent([
+                'name' => 'primary',
+                'index' => '',
+                'columns' => $primaryKeys
+            ]));
+        }
 
-		return $this->arraify($this->connection->select($sql));
-	}
+        // Get foreign keys
+        $foreignKeys = $this->getForeignKeys($blueprint);
+        foreach ($foreignKeys as $foreignKey) {
+            $blueprint->withRelation(new Fluent($foreignKey));
+        }
 
-	/**
-	 * Fill primary key for blueprint
-	 *
-	 * @param array $relations
-	 * @param Blueprint $blueprint
-	 */
-	protected function fillPrimaryKey(array $relations, Blueprint $blueprint): void
-	{
-		$pk = [];
-		foreach ($relations as $row) {
-			if ($row['constraint_type'] === 'p') {
-				$pk[] = $row['column_name'];
-			}
-		}
+        // Get indexes
+        $indexes = $this->getIndexes($blueprint);
+        foreach ($indexes as $index) {
+            $blueprint->withIndex(new Fluent($index));
+        }
+    }
 
-		if (!empty($pk)) {
-			$key = [
-				'name' => 'primary',
-				'index' => '',
-				'columns' => $pk,
-			];
+    protected function getPrimaryKeys(Blueprint $blueprint)
+    {
+        $keys = $this->arraify($this->connection->select(
+            "SELECT c.name AS column_name
+            FROM sys.indexes i
+            INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+            INNER JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+            INNER JOIN sys.objects o ON i.object_id = o.object_id
+            INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
+            WHERE i.is_primary_key = 1
+            AND s.name = '{$this->schema_database}'
+            AND OBJECT_NAME(i.object_id) = " . $this->wrap($blueprint->table())
+        ));
 
-			$blueprint->withPrimaryKey(new Fluent($key));
-		}
-	}
+        return array_column($keys, 'column_name');
+    }
 
-	/**
-	 * Fill indexes for blueprint
-	 *
-	 * @param Blueprint $blueprint
-	 */
-	protected function fillIndexes(Blueprint $blueprint): void
-	{
-		$indexSql = "
-        SELECT 
-            i.name AS index_name,
-            COL_NAME(ic.object_id, ic.column_id) AS column_name,
-            i.is_unique,
-            i.is_primary_key
-        FROM sys.indexes i
-        INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
-        INNER JOIN sys.tables t ON t.object_id = i.object_id
-        WHERE t.name = '{$blueprint->table()}' 
-        AND SCHEMA_NAME(t.schema_id) = '$this->schema_database'
-        AND i.is_primary_key = 0
-        ";
+    protected function getForeignKeys(Blueprint $blueprint)
+    {
+        $constraints = $this->arraify($this->connection->select(
+            "SELECT
+                fk.name as constraint_name,
+                pc.name as ref_column,
+                rc.name as column_name,
+                ro.name as ref_table
+            FROM sys.foreign_keys fk
+            INNER JOIN sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
+            INNER JOIN sys.columns rc ON fkc.parent_object_id = rc.object_id AND fkc.parent_column_id = rc.column_id
+            INNER JOIN sys.columns pc ON fkc.referenced_object_id = pc.object_id AND fkc.referenced_column_id = pc.column_id
+            INNER JOIN sys.objects ro ON fk.referenced_object_id = ro.object_id
+            INNER JOIN sys.objects o ON fk.parent_object_id = o.object_id
+            INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
+            WHERE s.name = '{$this->schema_database}'
+            AND OBJECT_NAME(fk.parent_object_id) = " . $this->wrap($blueprint->table())
+        ));
 
-		$indexes = $this->arraify($this->connection->select($indexSql));
+        $foreignKeys = [];
+        foreach ($constraints as $constraint) {
+            $foreignKeys[] = [
+                'name' => 'foreign',
+                'index' => $constraint['constraint_name'],
+                'columns' => [$constraint['column_name']],
+                'references' => [$constraint['ref_column']],
+                'on' => [$this->schema, $constraint['ref_table']]
+            ];
+        }
 
-		$processedIndexes = [];
-		foreach ($indexes as $index) {
-			$indexName = $index['index_name'];
+        return $foreignKeys;
+    }
 
-			if (!isset($processedIndexes[$indexName])) {
-				$processedIndexes[$indexName] = [
-					'name' => $index['is_unique'] ? 'unique' : 'index',
-					'columns' => [$index['column_name']],
-					'index' => $indexName,
-				];
-			} else {
-				$processedIndexes[$indexName]['columns'][] = $index['column_name'];
-			}
-		}
+    protected function getIndexes(Blueprint $blueprint)
+    {
+        $indexes = $this->arraify($this->connection->select(
+            "SELECT
+                i.name as index_name,
+                c.name as column_name,
+                i.is_unique
+            FROM sys.indexes i
+            INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+            INNER JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+            INNER JOIN sys.objects o ON i.object_id = o.object_id
+            INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
+            WHERE i.is_primary_key = 0
+            AND s.name = '{$this->schema_database}'
+            AND OBJECT_NAME(i.object_id) = " . $this->wrap($blueprint->table())
+        ));
 
-		foreach ($processedIndexes as $indexData) {
-			$blueprint->withIndex(new Fluent($indexData));
-		}
-	}
+        $result = [];
+        foreach ($indexes as $index) {
+            $result[] = [
+                'name' => $index['is_unique'] ? 'unique' : 'index',
+                'columns' => [$index['column_name']],
+                'index' => $index['index_name'],
+            ];
+        }
 
-	/**
-	 * Fill relations for blueprint
-	 *
-	 * @param array $relations
-	 * @param Blueprint $blueprint
-	 */
-	protected function fillRelations(array $relations, Blueprint $blueprint): void
-	{
-		$fk = [];
-		foreach ($relations as $row) {
-			if ($row['constraint_type'] === 'f') {
-				$relName = $row['constraint_name'];
-				if (!array_key_exists($relName, $fk)) {
-					$fk[$relName] = [
-						'columns' => [],
-						'ref' => [],
-					];
-				}
-				$fk[$relName]['columns'][] = $row['column_name'];
-				$fk[$relName]['ref'][] = $row['referenced_column'];
-				$fk[$relName]['table'] = $row['referenced_table'];
-			}
-		}
+        return $result;
+    }
 
-		foreach ($fk as $row) {
-			$relation = [
-				'name' => 'foreign',
-				'index' => '',
-				'columns' => $row['columns'],
-				'references' => $row['ref'],
-				'on' => [$this->schema, $row['table']],
-			];
+    /**
+     * Quick little hack since it is no longer possible to set PDO's fetch mode
+     * to PDO::FETCH_ASSOC.
+     *
+     * @param $data
+     * @return mixed
+     */
+    protected function arraify($data)
+    {
+        return json_decode(json_encode($data), true);
+    }
 
-			$blueprint->withRelation(new Fluent($relation));
-		}
-	}
+    /**
+     * Wrap within square brackets for SQL Server.
+     *
+     * @param string $table
+     * @return string
+     */
+    protected function wrap($table)
+    {
+        return "'$table'";
+    }
 
-	/**
-	 * Quick conversion of database results to array
-	 *
-	 * @param $data
-	 * @return mixed
-	 */
-	protected function arraify($data)
-	{
-		return json_decode(json_encode($data), true);
-	}
+    /**
+     * @param \Illuminate\Database\Connection $connection
+     * @return array
+     */
+    public static function schemas(Connection $connection)
+    {
+        $schemas = $connection->select("SELECT name FROM sys.databases WHERE name NOT IN ('master', 'tempdb', 'model', 'msdb')");
+        return array_column($schemas, 'name');
+    }
 
-	/**
-	 * Wrap values for SQL queries
-	 *
-	 * @param string $table
-	 * @return string
-	 */
-	protected function wrap(string $table): string
-	{
-		$pieces = explode('.', str_replace('\'', '', $table));
+    /**
+     * @return string
+     */
+    public function schema()
+    {
+        return $this->schema;
+    }
 
-		return implode('.', array_map(function ($piece) {
-			return "'$piece'";
-		}, $pieces));
-	}
+    /**
+     * @param string $table
+     * @return bool
+     */
+    public function has($table)
+    {
+        return array_key_exists($table, $this->tables);
+    }
 
-	/**
-	 * Get available schemas/databases
-	 *
-	 * @param Connection $connection
-	 * @return array
-	 */
-	public static function schemas(Connection $connection): array
-	{
-		$schemas = $connection->select('SELECT name FROM sys.databases');
-		$schemas = array_column($schemas, 'name');
+    /**
+     * @return \Reliese\Meta\Blueprint[]
+     */
+    public function tables()
+    {
+        return $this->tables;
+    }
 
-		return array_diff($schemas, [
-			'master',
-			'tempdb',
-			'model',
-			'msdb',
-		]);
-	}
+    /**
+     * @param string $table
+     * @return \Reliese\Meta\Blueprint
+     */
+    public function table($table)
+    {
+        if (!$this->has($table)) {
+            throw new \InvalidArgumentException("Table [$table] does not belong to schema [{$this->schema}]");
+        }
 
-	/**
-	 * Get current schema
-	 *
-	 * @return string
-	 */
-	public function schema(): string
-	{
-		return $this->schema;
-	}
+        return $this->tables[$table];
+    }
 
-	/**
-	 * Check if table exists in schema
-	 *
-	 * @param string $table
-	 * @return bool
-	 */
-	public function has($table): bool
-	{
-		return array_key_exists($table, $this->tables);
-	}
+    /**
+     * @return \Illuminate\Database\Connection
+     */
+    public function connection()
+    {
+        return $this->connection;
+    }
 
-	/**
-	 * Get all tables
-	 *
-	 * @return Blueprint[]
-	 */
-	public function tables(): array
-	{
-		return $this->tables;
-	}
+    /**
+     * @param \Reliese\Meta\Blueprint $table
+     * @return array
+     */
+    public function referencing(Blueprint $table)
+    {
+        $references = [];
 
-	/**
-	 * Get specific table
-	 *
-	 * @param string $table
-	 * @return Blueprint
-	 * @throws InvalidArgumentException
-	 */
-	public function table($table): Blueprint
-	{
-		if (!$this->has($table)) {
-			throw new InvalidArgumentException("Table [$table] does not belong to schema [$this->schema]");
-		}
+        foreach ($this->tables as $blueprint) {
+            foreach ($blueprint->references($table) as $reference) {
+                $references[] = [
+                    'blueprint' => $blueprint,
+                    'reference' => $reference,
+                ];
+            }
+        }
 
-		return $this->tables[$table];
-	}
-
-	/**
-	 * Get connection
-	 *
-	 * @return Connection
-	 */
-	public function connection()
-	{
-		return $this->connection;
-	}
-
-	/**
-	 * Find tables referencing a given table
-	 *
-	 * @param Blueprint $table
-	 * @return array
-	 */
-	public function referencing(Blueprint $table): array
-	{
-		$references = [];
-
-		foreach ($this->tables as $blueprint) {
-			foreach ($blueprint->references($table) as $reference) {
-				$references[] = [
-					'blueprint' => $blueprint,
-					'reference' => $reference,
-				];
-			}
-		}
-
-		return $references;
-	}
+        return $references;
+    }
 }
