@@ -124,7 +124,7 @@ class Column implements \Reliese\Meta\Column
 	 */
 	protected function parseNullable(Fluent $attributes)
 	{
-		$attributes['nullable'] = $this->get('is_nullable') === 1;
+		$attributes['nullable'] = $this->get('is_nullable') === 'YES';
 	}
 
 	/**

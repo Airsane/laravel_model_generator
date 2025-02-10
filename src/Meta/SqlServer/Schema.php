@@ -94,9 +94,10 @@ class Schema implements \Reliese\Meta\Schema
 	protected function fillColumns(Blueprint $blueprint): void
 	{
 		$rows = $this->arraify($this->connection->select(
-			"SELECT * FROM INFORMATION_SCHEMA.COLUMNS " .
-			"WHERE TABLE_SCHEMA = '$this->schema_database' " .
-			"AND TABLE_NAME = " . $this->wrap($blueprint->table())
+			"SELECT c.*, COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA + '.' + c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as is_identity " .
+			"FROM INFORMATION_SCHEMA.COLUMNS c " .
+			"WHERE c.TABLE_SCHEMA = '$this->schema_database' " .
+			"AND c.TABLE_NAME = " . $this->wrap($blueprint->table())
 		));
 
 		foreach ($rows as $column) {
