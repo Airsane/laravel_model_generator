@@ -13,7 +13,7 @@ to automatically generate Models that have correctly typed properties, along wit
 ## How does it work?
 
 This package expects that you are using Laravel 5.1 or above.
-You will need to import the ` airsane/laravel_model_generator` package via composer:
+You will need to import the `airsane/laravel_model_generator` package via composer:
 
 ### Configuration
 
