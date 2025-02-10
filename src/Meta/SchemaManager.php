@@ -8,6 +8,7 @@
 namespace Reliese\Meta;
 
 use ArrayIterator;
+use Illuminate\Database\SqlServerConnection;
 use RuntimeException;
 use IteratorAggregate;
 use Illuminate\Database\MySqlConnection;
@@ -17,6 +18,8 @@ use Illuminate\Database\ConnectionInterface;
 use Reliese\Meta\MySql\Schema as MySqlSchema;
 use Reliese\Meta\Sqlite\Schema as SqliteSchema;
 use Reliese\Meta\Postgres\Schema as PostgresSchema;
+use Reliese\Meta\SqlServer\Schema as SqlSchema;
+
 
 class SchemaManager implements IteratorAggregate
 {
@@ -27,6 +30,7 @@ class SchemaManager implements IteratorAggregate
         MySqlConnection::class => MySqlSchema::class,
         SQLiteConnection::class => SqliteSchema::class,
         PostgresConnection::class => PostgresSchema::class,
+		SqlServerConnection::class => SqlSchema::class,
         \Larapack\DoctrineSupport\Connections\MySqlConnection::class => MySqlSchema::class,
         \Staudenmeir\LaravelCte\Connections\MySqlConnection::class => MySqlSchema::class,
     ];

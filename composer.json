@@ -1,11 +1,11 @@
 {
-    "name": "reliese/laravel",
+    "name": "airsane/laravel_model_generator",
     "description": "Reliese Components for Laravel Framework code generation.",
     "keywords": ["reliese", "laravel"],
     "homepage": "http://cristianllanos.com",
     "support": {
-        "issues": "https://github.com/reliese/laravel/issues",
-        "source": "https://github.com/reliese/laravel"
+        "issues": "https://github.com/Airsane/laravel_model_generator/issues",
+        "source": "https://github.com/Airsane/laravel_model_generator"
     },
     "license": "MIT",
     "authors": [
