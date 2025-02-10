@@ -14,12 +14,12 @@ class Column implements \Reliese\Meta\Column
     /**
      * @var array
      */
-    protected $metadata;
+    protected array $metadata;
 
     /**
      * @var array
      */
-    protected $metas = [
+    protected array $metas = [
       'type', 'name', 'autoincrement', 'nullable', 'default', 'comment',
     ];
 
@@ -27,7 +27,7 @@ class Column implements \Reliese\Meta\Column
      * @var array
      * @todo check these
      */
-    public static $mappings = [
+    public static array $mappings = [
       'string' => ['character varying', 'varchar', 'text', 'string', 'char', 'character','enum', 'tinytext', 'mediumtext', 'longtext', 'json'],
       'datetime' => ['timestamp with time zone', 'timestamp without time zone', 'timestamptz', 'datetime', 'year', 'date', 'time', 'timestamp'],
       'int' => ['int', 'integer', 'tinyint', 'smallint', 'mediumint', 'bigint', 'bigserial', 'serial', 'smallserial', 'tinyserial', 'serial4', 'serial8'],
@@ -41,7 +41,7 @@ class Column implements \Reliese\Meta\Column
      *
      * @param array $metadata
      */
-    public function __construct($metadata = [])
+    public function __construct(array $metadata = [])
     {
         $this->metadata = $metadata;
     }
@@ -49,7 +49,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @return \Illuminate\Support\Fluent
      */
-    public function normalize()
+    public function normalize():Fluent
     {
         $attributes = new Fluent();
 
@@ -63,7 +63,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseType(Fluent $attributes)
+    protected function parseType(Fluent $attributes):void
     {
         $dataType = $this->get('data_type', 'string');
         $attributes['type'] = $dataType;
@@ -82,7 +82,7 @@ class Column implements \Reliese\Meta\Column
      * @param \Illuminate\Support\Fluent $attributes
      * @todo handle non numeric precisions
      */
-    protected function parsePrecision($databaseType, Fluent $attributes)
+    protected function parsePrecision(string $databaseType, Fluent $attributes):void
     {
         $precision = $this->get('numeric_precision', 'string');
         $precision = explode(',', str_replace("'", '', $precision));
@@ -118,7 +118,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseName(Fluent $attributes)
+    protected function parseName(Fluent $attributes):void
     {
         $attributes['name'] = $this->get('column_name');
     }
@@ -127,7 +127,7 @@ class Column implements \Reliese\Meta\Column
      * @param \Illuminate\Support\Fluent $attributes
      * @todo
      */
-    protected function parseAutoincrement(Fluent $attributes)
+    protected function parseAutoincrement(Fluent $attributes):void
     {
         $attributes['autoincrement'] = preg_match('/serial/i',
             $this->get('data_type', '')) || $this->defaultIsNextVal($attributes);
@@ -136,7 +136,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseNullable(Fluent $attributes)
+    protected function parseNullable(Fluent $attributes):void
     {
         $attributes['nullable'] = $this->same('is_nullable', 'YES');
     }
@@ -144,7 +144,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseDefault(Fluent $attributes)
+    protected function parseDefault(Fluent $attributes):void
     {
         $value = null;
         if ($this->defaultIsNextVal($attributes)) {
@@ -159,7 +159,7 @@ class Column implements \Reliese\Meta\Column
      * @param \Illuminate\Support\Fluent $attributes
      * @todo
      */
-    protected function parseComment(Fluent $attributes)
+    protected function parseComment(Fluent $attributes):void
     {
         $attributes['comment'] = $this->get('Comment');
     }
@@ -170,7 +170,7 @@ class Column implements \Reliese\Meta\Column
      *
      * @return mixed
      */
-    protected function get($key, $default = null)
+    protected function get(string $key, mixed $default = null):mixed
     {
         return Arr::get($this->metadata, $key, $default);
     }
@@ -181,7 +181,7 @@ class Column implements \Reliese\Meta\Column
      *
      * @return bool
      */
-    protected function same($key, $value)
+    protected function same(string $key, string $value):bool
     {
         return strcasecmp($this->get($key, ''), $value) === 0;
     }
@@ -191,7 +191,7 @@ class Column implements \Reliese\Meta\Column
      *
      * @return bool
      */
-    private function defaultIsNextVal(Fluent $attributes)
+    private function defaultIsNextVal(Fluent $attributes):bool
     {
         $value = $this->get('column_default', $this->get('generation_expression', null));
         $isIdentity = $this->get('is_identity');

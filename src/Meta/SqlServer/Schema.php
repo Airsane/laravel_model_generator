@@ -6,33 +6,33 @@ use Illuminate\Support\Facades\Config;
 use Reliese\Meta\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
-
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 class Schema implements \Reliese\Meta\Schema
 {
     /**
      * @var string
      */
-    protected $schema;
+    protected string $schema;
 
     /**
      * @var string
      */
-    protected $schema_database;
+    protected string $schema_database;
 
     /**
      * @var \Illuminate\Database\Connection
      */
-    protected $connection;
+    protected Connection $connection;
 
     /**
      * @var bool
      */
-    protected $loaded = false;
+    protected bool $loaded = false;
 
     /**
      * @var \Reliese\Meta\Blueprint[]
      */
-    protected $tables = [];
+    protected array $tables = [];
 
     /**
      * Schema constructor.
@@ -41,7 +41,7 @@ class Schema implements \Reliese\Meta\Schema
      * @param \Illuminate\Database\Connection $connection
      * @param string $schema_database
      */
-    public function __construct($schema, $connection)
+    public function __construct(string $schema, Connection $connection)
     {
         $this->schema = $schema;
         $this->connection = $connection;
@@ -53,7 +53,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @return \Doctrine\DBAL\Schema\AbstractSchemaManager
      */
-    public function manager()
+    public function manager():AbstractSchemaManager
     {
         return $this->connection->getDoctrineSchemaManager();
     }
@@ -61,7 +61,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * Loads schema's tables' information from the database.
      */
-    protected function load()
+    protected function load():void
     {
         $tables = $this->fetchTables($this->schema);
         foreach ($tables as $table) {
@@ -74,11 +74,10 @@ class Schema implements \Reliese\Meta\Schema
     }
 
     /**
-     * @param string $schema
      *
      * @return array
      */
-    protected function fetchTables()
+    protected function fetchTables():array
     {
         $rows = $this->arraify($this->connection->select(
             "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '{$this->schema_database}'"
@@ -90,7 +89,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @param \Reliese\Meta\Blueprint $blueprint
      */
-    protected function fillColumns(Blueprint $blueprint)
+    protected function fillColumns(Blueprint $blueprint):void
     {
         $rows = $this->arraify($this->connection->select(
             'SELECT c.*, CASE WHEN OBJECTPROPERTY(OBJECT_ID(c.TABLE_SCHEMA + \'.\' + c.TABLE_NAME), \'TableHasIdentity\') = 1 AND
@@ -112,7 +111,7 @@ class Schema implements \Reliese\Meta\Schema
      *
      * @return \Illuminate\Support\Fluent
      */
-    protected function parseColumn($metadata)
+    protected function parseColumn(array $metadata):Fluent
     {
         return (new Column($metadata))->normalize();
     }
@@ -120,7 +119,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @param \Reliese\Meta\Blueprint $blueprint
      */
-    protected function fillConstraints(Blueprint $blueprint)
+    protected function fillConstraints(Blueprint $blueprint):void
     {
         // Get primary keys
         $primaryKeys = $this->getPrimaryKeys($blueprint);
@@ -145,7 +144,7 @@ class Schema implements \Reliese\Meta\Schema
         }
     }
 
-    protected function getPrimaryKeys(Blueprint $blueprint)
+    protected function getPrimaryKeys(Blueprint $blueprint):array
     {
         $keys = $this->arraify($this->connection->select(
             "SELECT c.name AS column_name
@@ -162,7 +161,7 @@ class Schema implements \Reliese\Meta\Schema
         return array_column($keys, 'column_name');
     }
 
-    protected function getForeignKeys(Blueprint $blueprint)
+    protected function getForeignKeys(Blueprint $blueprint):array
     {
         $constraints = $this->arraify($this->connection->select(
             "SELECT
@@ -195,7 +194,7 @@ class Schema implements \Reliese\Meta\Schema
         return $foreignKeys;
     }
 
-    protected function getIndexes(Blueprint $blueprint)
+    protected function getIndexes(Blueprint $blueprint):array
     {
         $indexes = $this->arraify($this->connection->select(
             "SELECT
@@ -260,7 +259,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @return string
      */
-    public function schema()
+    public function schema():string
     {
         return $this->schema;
     }
@@ -269,7 +268,7 @@ class Schema implements \Reliese\Meta\Schema
      * @param string $table
      * @return bool
      */
-    public function has($table)
+    public function has(string $table):bool
     {
         return array_key_exists($table, $this->tables);
     }
@@ -277,7 +276,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @return \Reliese\Meta\Blueprint[]
      */
-    public function tables()
+    public function tables():array
     {
         return $this->tables;
     }
@@ -286,7 +285,7 @@ class Schema implements \Reliese\Meta\Schema
      * @param string $table
      * @return \Reliese\Meta\Blueprint
      */
-    public function table($table)
+    public function table(string $table):Blueprint
     {
         if (!$this->has($table)) {
             throw new \InvalidArgumentException("Table [$table] does not belong to schema [{$this->schema}]");
@@ -298,7 +297,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @return \Illuminate\Database\Connection
      */
-    public function connection()
+    public function connection():Connection
     {
         return $this->connection;
     }
@@ -307,7 +306,7 @@ class Schema implements \Reliese\Meta\Schema
      * @param \Reliese\Meta\Blueprint $table
      * @return array
      */
-    public function referencing(Blueprint $table)
+    public function referencing(Blueprint $table):array
     {
         $references = [];
 

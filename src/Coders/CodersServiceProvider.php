@@ -14,14 +14,14 @@ class CodersServiceProvider extends ServiceProvider
     /**
      * @var bool
      */
-    protected $defer = true;
+    protected bool $defer = true;
 
     /**
      * Bootstrap the application services.
      *
      * @return void
      */
-    public function boot()
+    public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -39,7 +39,7 @@ class CodersServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
         $this->registerModelFactory();
     }
@@ -49,7 +49,7 @@ class CodersServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function registerModelFactory()
+    protected function registerModelFactory(): void
     {
         $this->app->singleton(ModelFactory::class, function ($app) {
             return new ModelFactory(
@@ -64,7 +64,7 @@ class CodersServiceProvider extends ServiceProvider
     /**
      * @return array
      */
-    public function provides()
+    public function provides(): array
     {
         return [ModelFactory::class];
     }

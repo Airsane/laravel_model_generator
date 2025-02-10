@@ -19,37 +19,37 @@ class Factory
     /**
      * @var \Illuminate\Database\DatabaseManager
      */
-    private $db;
+    private DatabaseManager $db;
 
     /**
      * @var \Reliese\Meta\SchemaManager
      */
-    protected $schemas = [];
+    protected SchemaManager $schemas;
 
     /**
      * @var \Illuminate\Filesystem\Filesystem
      */
-    protected $files;
+    protected Filesystem $files;
 
     /**
      * @var \Reliese\Support\Classify
      */
-    protected $class;
+    protected Classify $class;
 
     /**
      * @var \Reliese\Coders\Model\Config
      */
-    protected $config;
+    protected Config $config;
 
     /**
      * @var \Reliese\Coders\Model\ModelManager
      */
-    protected $models;
+    protected ModelManager $models;
 
     /**
      * @var \Reliese\Coders\Model\Mutator[]
      */
-    protected $mutators = [];
+    protected array $mutators = [];
 
     /**
      * ModelsFactory constructor.
@@ -70,7 +70,7 @@ class Factory
     /**
      * @return \Reliese\Coders\Model\Mutator
      */
-    public function mutate()
+    public function mutate():Mutator
     {
         return $this->mutators[] = new Mutator();
     }
@@ -78,7 +78,7 @@ class Factory
     /**
      * @return \Reliese\Coders\Model\ModelManager
      */
-    protected function models()
+    protected function models():ModelManager
     {
         if (! isset($this->models)) {
             $this->models = new ModelManager($this);
@@ -90,11 +90,11 @@ class Factory
     /**
      * Select connection to work with.
      *
-     * @param string $connection
+     * @param string|null $connection
      *
      * @return $this
      */
-    public function on($connection = null)
+    public function on(?string $connection = null):self
     {
         $this->schemas = new SchemaManager($this->db->connection($connection));
 
@@ -104,7 +104,7 @@ class Factory
     /**
      * @param string $schema
      */
-    public function map($schema)
+    public function map(string $schema):void
     {
         if (! isset($this->schemas)) {
             $this->on();
@@ -124,7 +124,7 @@ class Factory
      *
      * @return bool
      */
-    protected function shouldNotExclude(Blueprint $blueprint)
+    protected function shouldNotExclude(Blueprint $blueprint):bool
     {
         foreach ($this->config($blueprint, 'except', []) as $pattern) {
             if (Str::is($pattern, $blueprint->table())) {
@@ -140,7 +140,7 @@ class Factory
      *
      * @return bool
      */
-    protected function shouldTakeOnly(Blueprint $blueprint)
+    protected function shouldTakeOnly(Blueprint $blueprint):bool
     {
         if ($patterns = $this->config($blueprint, 'only', [])) {
             foreach ($patterns as $pattern) {
@@ -159,7 +159,7 @@ class Factory
      * @param string $schema
      * @param string $table
      */
-    public function create($schema, $table)
+    public function create(string $schema, string $table):void
     {
         $model = $this->makeModel($schema, $table);
         $template = $this->prepareTemplate($model, 'model');
@@ -185,7 +185,7 @@ class Factory
      *
      * @return \Reliese\Coders\Model\Model
      */
-    public function makeModel($schema, $table, $withRelations = true)
+    public function makeModel(string $schema, string $table, bool $withRelations = true):Model
     {
         return $this->models()->make($schema, $table, $this->mutators, $withRelations);
     }
@@ -195,7 +195,7 @@ class Factory
      *
      * @return \Reliese\Meta\Schema
      */
-    public function makeSchema($schema)
+    public function makeSchema(string $schema):Schema
     {
         return $this->schemas->make($schema);
     }
@@ -207,7 +207,7 @@ class Factory
      *
      * @return array
      */
-    public function referencing(Model $model)
+    public function referencing(Model $model):array
     {
         $references = [];
 
@@ -234,7 +234,7 @@ class Factory
      * @return string
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    protected function prepareTemplate(Model $model, $name)
+    protected function prepareTemplate(Model $model, string $name):string
     {
         $defaultFile = $this->path([__DIR__, 'Templates', $name]);
         $file = $this->config($model->getBlueprint(), "*.template.$name", $defaultFile);
@@ -248,7 +248,7 @@ class Factory
      *
      * @return mixed
      */
-    protected function fillTemplate($template, Model $model)
+    protected function fillTemplate(string $template, Model $model):string
     {
         $template = str_replace('{{namespace}}', $model->getBaseNamespace(), $template);
         $template = str_replace('{{class}}', $model->getClassName(), $template);
@@ -278,7 +278,7 @@ class Factory
      * @param Model $model
      * @return string
      */
-    private function imports($dependencies, Model $model)
+    private function imports(array $dependencies, Model $model):string
     {
         $imports = [];
         foreach ($dependencies as $dependencyClass) {
@@ -309,7 +309,7 @@ class Factory
      *
      * @return array Extracted FQN
      */
-    private function shortenAndExtractImportableDependencies(&$placeholder, $model)
+    private function shortenAndExtractImportableDependencies(string &$placeholder, Model $model):array
     {
         $qualifiedClassesPattern = '/([\\\\a-zA-Z0-9_]*\\\\[\\\\a-zA-Z0-9_]*)/';
         $matches = [];
@@ -349,7 +349,7 @@ class Factory
      *
      * @return string
      */
-    protected function properties(Model $model)
+    protected function properties(Model $model):string
     {
         // Process property annotations
         $annotations = '';
@@ -379,7 +379,7 @@ class Factory
      *
      * @return string
      */
-    protected function body(Model $model)
+    protected function body(Model $model):string
     {
         $body = '';
 
@@ -505,7 +505,7 @@ class Factory
      *
      * @return string
      */
-    protected function modelPath(Model $model, $custom = [])
+    protected function modelPath(Model $model, array $custom = []):string
     {
         $modelsDirectory = $this->path(array_merge([$this->config($model->getBlueprint(), 'path')], $custom));
 
@@ -521,9 +521,9 @@ class Factory
      *
      * @return string
      */
-    protected function path($pieces)
+    protected function path(array $pieces):string
     {
-        return implode(DIRECTORY_SEPARATOR, (array) $pieces);
+        return implode(DIRECTORY_SEPARATOR, $pieces);
     }
 
     /**
@@ -531,7 +531,7 @@ class Factory
      *
      * @return bool
      */
-    public function needsUserFile(Model $model)
+    public function needsUserFile(Model $model):bool
     {
         return ! $this->files->exists($this->modelPath($model)) && $model->usesBaseFiles();
     }
@@ -541,7 +541,7 @@ class Factory
      *
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    protected function createUserFile(Model $model)
+    protected function createUserFile(Model $model):void
     {
         $file = $this->modelPath($model);
 
@@ -559,7 +559,7 @@ class Factory
      * @param Model $model
      * @return string
      */
-    private function formatBaseClasses(Model $model)
+    private function formatBaseClasses(Model $model):string
     {
         return "use {$model->getBaseNamespace()}\\{$model->getClassName()} as {$this->getBaseClassName($model)};";
     }
@@ -568,7 +568,7 @@ class Factory
      * @param Model $model
      * @return string
      */
-    private function getBaseClassName(Model $model)
+    private function getBaseClassName(Model $model):string
     {
         return 'Base'.$model->getClassName();
     }
@@ -578,7 +578,7 @@ class Factory
      *
      * @return string
      */
-    protected function userFileBody(Model $model)
+    protected function userFileBody(Model $model):string
     {
         $body = '';
 
@@ -603,7 +603,7 @@ class Factory
      *
      * @return mixed|\Reliese\Coders\Model\Config
      */
-    public function config(Blueprint $blueprint = null, $key = null, $default = null)
+    public function config(Blueprint $blueprint = null, string $key = null, mixed $default = null):mixed
     {
         if (is_null($blueprint)) {
             return $this->config;

@@ -12,21 +12,21 @@ use Illuminate\Support\Fluent;
 class Column implements \Reliese\Meta\Column
 {
     /**
-     * @var \Doctrine\DBAL\Schema\Column
+     * @var array
      */
-    protected $metadata;
+    protected array $metadata;
 
     /**
      * @var array
      */
-    protected $metas = [
+    protected array $metas = [
         'type', 'name', 'autoincrement', 'nullable', 'default', 'comment',
     ];
 
     /**
      * @var array
      */
-    public static $mappings = [
+    public static array $mappings = [
         'string' => ['varchar', 'text', 'string', 'char', 'enum', 'tinytext', 'mediumtext', 'longtext'],
         'datetime' => ['datetime', 'year', 'date', 'time', 'timestamp'],
         'int' => ['bigint', 'int', 'integer', 'tinyint', 'smallint', 'mediumint'],
@@ -39,7 +39,7 @@ class Column implements \Reliese\Meta\Column
      *
      * @param array $metadata
      */
-    public function __construct($metadata = [])
+    public function __construct(array $metadata = [])
     {
         $this->metadata = $metadata;
     }
@@ -47,7 +47,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @return \Illuminate\Support\Fluent
      */
-    public function normalize()
+    public function normalize():Fluent
     {
         $attributes = new Fluent();
 
@@ -61,7 +61,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseType(Fluent $attributes)
+    protected function parseType(Fluent $attributes):void
     {
         $dataType = $this->metadata->getType()->getName();
 
@@ -79,7 +79,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseName(Fluent $attributes)
+    protected function parseName(Fluent $attributes):void
     {
         $attributes['name'] = $this->metadata->getName();
     }
@@ -87,7 +87,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseAutoincrement(Fluent $attributes)
+    protected function parseAutoincrement(Fluent $attributes):void
     {
         $attributes['autoincrement'] = $this->metadata->getAutoincrement();
     }
@@ -95,7 +95,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseNullable(Fluent $attributes)
+    protected function parseNullable(Fluent $attributes):void
     {
         $attributes['nullable'] = $this->metadata->getNotnull();
     }
@@ -103,7 +103,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseDefault(Fluent $attributes)
+    protected function parseDefault(Fluent $attributes):void
     {
         $attributes['default'] = $this->metadata->getDefault();
     }
@@ -111,7 +111,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseComment(Fluent $attributes)
+    protected function parseComment(Fluent $attributes):void
     {
         $attributes['comment'] = $this->metadata->getComment();
     }

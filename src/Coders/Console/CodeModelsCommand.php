@@ -13,7 +13,7 @@ class CodeModelsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'code:models
+    protected string $signature = 'code:models
                             {--s|schema= : The name of the MySQL database}
                             {--c|connection= : The name of the connection}
                             {--t|table= : The name of the table}';
@@ -23,17 +23,17 @@ class CodeModelsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Parse connection schema into models';
+    protected string $description = 'Parse connection schema into models';
 
     /**
      * @var \Reliese\Coders\Model\Factory
      */
-    protected $models;
+    protected Factory $models;
 
     /**
      * @var \Illuminate\Contracts\Config\Repository
      */
-    protected $config;
+    protected Repository $config;
 
     /**
      * Create a new command instance.
@@ -52,7 +52,7 @@ class CodeModelsCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
         $connection = $this->getConnection();
         $schema = $this->getSchema($connection);
@@ -74,17 +74,17 @@ class CodeModelsCommand extends Command
     /**
      * @return string
      */
-    protected function getConnection()
+    protected function getConnection(): string
     {
         return $this->option('connection') ?: $this->config->get('database.default');
     }
 
     /**
-     * @param $connection
+     * @param string $connection
      *
      * @return string
      */
-    protected function getSchema($connection)
+    protected function getSchema(string $connection): string
     {
         return $this->option('schema') ?: $this->config->get("database.connections.$connection.database");
     }
@@ -92,7 +92,7 @@ class CodeModelsCommand extends Command
     /**
      * @return string
      */
-    protected function getTable()
+    protected function getTable(): string
     {
         return $this->option('table');
     }

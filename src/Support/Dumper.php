@@ -16,7 +16,7 @@ class Dumper
      *
      * @return bool
      */
-    private static function hasStaticCall($value)
+    private static function hasStaticCall(mixed $value): bool
     {
         return is_string($value) && strpos($value, '::') !== false;
     }
@@ -27,7 +27,7 @@ class Dumper
      *
      * @return string
      */
-    public static function export($value, $tabs = 2)
+    public static function export(mixed $value, int $tabs = 2): string
     {
         // Custom array exporting
         if (is_array($value)) {

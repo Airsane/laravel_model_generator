@@ -16,36 +16,36 @@ interface Schema
     /**
      * @return \Illuminate\Database\ConnectionInterface
      */
-    public function connection();
+    public function connection(): \Illuminate\Database\ConnectionInterface;
 
     /**
      * @return string
      */
-    public function schema();
+    public function schema(): string;
 
     /**
      * @return \Reliese\Meta\Blueprint[]
      */
-    public function tables();
+    public function tables(): array;
 
     /**
      * @param string $table
      *
      * @return bool
      */
-    public function has($table);
+    public function has(string $table): bool;
 
     /**
      * @param string $table
      *
      * @return \Reliese\Meta\Blueprint
      */
-    public function table($table);
+    public function table(string $table): Blueprint;
 
     /**
      * @param \Reliese\Meta\Blueprint $table
      *
      * @return array
      */
-    public function referencing(Blueprint $table);
+    public function referencing(Blueprint $table): array;
 }

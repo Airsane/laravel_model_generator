@@ -19,27 +19,27 @@ class BelongsToMany implements Relation
     /**
      * @var \Illuminate\Support\Fluent
      */
-    protected $parentCommand;
+    protected Fluent $parentCommand;
 
     /**
      * @var \Illuminate\Support\Fluent
      */
-    protected $referenceCommand;
+    protected Fluent $referenceCommand;
 
     /**
      * @var \Reliese\Coders\Model\Model
      */
-    protected $parent;
+    protected Model $parent;
 
     /**
      * @var \Reliese\Coders\Model\Model
      */
-    protected $pivot;
+    protected Model $pivot;
 
     /**
      * @var \Reliese\Coders\Model\Model
      */
-    protected $reference;
+    protected Model $reference;
 
     /**
      * BelongsToMany constructor.
@@ -67,7 +67,7 @@ class BelongsToMany implements Relation
     /**
      * @return string
      */
-    public function hint()
+    public function hint():string
     {
         return '\\'.Collection::class.'|'.$this->reference->getQualifiedUserClassName().'[]';
     }
@@ -75,7 +75,7 @@ class BelongsToMany implements Relation
     /**
      * @return string
      */
-    public function name()
+    public function name():string
     {
         $tableName = $this->reference->getTable(true);
 
@@ -95,7 +95,7 @@ class BelongsToMany implements Relation
     /**
      * @return string
      */
-    public function body()
+    public function body():string
     {
         $body = 'return $this->belongsToMany(';
 
@@ -139,7 +139,7 @@ class BelongsToMany implements Relation
     /**
      * @return string
      */
-    public function returnType()
+    public function returnType():string
     {
         return \Illuminate\Database\Eloquent\Relations\BelongsToMany::class;
     }
@@ -147,7 +147,7 @@ class BelongsToMany implements Relation
     /**
      * @return bool
      */
-    protected function needsPivotTable()
+    protected function needsPivotTable():bool
     {
         $models = [$this->referenceRecordName(), $this->parentRecordName()];
         sort($models);
@@ -159,7 +159,7 @@ class BelongsToMany implements Relation
     /**
      * @return mixed
      */
-    protected function pivotTable()
+    protected function pivotTable():string
     {
         if ($this->parent->getSchema() != $this->pivot->getSchema()) {
             return $this->pivot->getQualifiedTable();
@@ -171,7 +171,7 @@ class BelongsToMany implements Relation
     /**
      * @return bool
      */
-    protected function needsForeignKey()
+    protected function needsForeignKey():bool
     {
         $defaultForeignKey = $this->parentRecordName().'_id';
 
@@ -181,7 +181,7 @@ class BelongsToMany implements Relation
     /**
      * @return string
      */
-    protected function foreignKey()
+    protected function foreignKey():string
     {
         return $this->parentCommand->columns[0];
     }
@@ -189,7 +189,7 @@ class BelongsToMany implements Relation
     /**
      * @return bool
      */
-    protected function needsOtherKey()
+    protected function needsOtherKey():bool
     {
         $defaultOtherKey = $this->referenceRecordName().'_id';
 
@@ -199,12 +199,15 @@ class BelongsToMany implements Relation
     /**
      * @return string
      */
-    protected function otherKey()
+    protected function otherKey():string
     {
         return $this->referenceCommand->columns[0];
     }
 
-    private function getPivotFields()
+    /**
+     * @return array
+     */
+    private function getPivotFields():array
     {
         return array_diff(array_keys($this->pivot->getProperties()), [
             $this->foreignKey(),
@@ -217,7 +220,7 @@ class BelongsToMany implements Relation
     /**
      * @return string
      */
-    protected function parentRecordName()
+    protected function parentRecordName():string
     {
         // We make sure it is snake case because Eloquent assumes it is.
         return Str::snake($this->parent->getRecordName());
@@ -226,7 +229,7 @@ class BelongsToMany implements Relation
     /**
      * @return string
      */
-    protected function referenceRecordName()
+    protected function referenceRecordName():string
     {
         // We make sure it is snake case because Eloquent assumes it is.
         return Str::snake($this->reference->getRecordName());
@@ -237,7 +240,7 @@ class BelongsToMany implements Relation
      *
      * @return string
      */
-    private function parametrize($fields = [])
+    private function parametrize(array $fields = []):string
     {
         return (string) implode(', ', array_map(function ($field) {
             $field = $this->reference->usesPropertyConstants()

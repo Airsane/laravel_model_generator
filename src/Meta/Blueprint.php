@@ -14,47 +14,47 @@ class Blueprint
     /**
      * @var string
      */
-    protected $connection;
+    protected string $connection;
 
     /**
      * @var string
      */
-    protected $schema;
+    protected string $schema;
 
     /**
      * @var string
      */
-    protected $table;
+    protected string $table;
 
     /**
      * @var \Illuminate\Support\Fluent[]
      */
-    protected $columns = [];
+    protected array $columns = [];
 
     /**
      * @var \Illuminate\Support\Fluent[]
      */
-    protected $indexes = [];
+    protected array $indexes = [];
 
     /**
      * @var \Illuminate\Support\Fluent[]
      */
-    protected $unique = [];
+    protected array $unique = [];
 
     /**
      * @var \Illuminate\Support\Fluent[]
      */
-    protected $relations = [];
+    protected array $relations = [];
 
     /**
      * @var \Illuminate\Support\Fluent
      */
-    protected $primaryKey;
+    protected Fluent $primaryKey;
 
     /**
      * @var bool
      */
-    protected $isView;
+    protected bool $isView;
 
     /**
      * Blueprint constructor.
@@ -63,7 +63,7 @@ class Blueprint
      * @param string $schema
      * @param string $table
      */
-    public function __construct($connection, $schema, $table, $isView = false)
+    public function __construct(string $connection, string $schema, string $table, bool $isView = false)
     {
         $this->connection = $connection;
         $this->schema = $schema;
@@ -74,7 +74,7 @@ class Blueprint
     /**
      * @return string
      */
-    public function schema()
+    public function schema(): string
     {
         return $this->schema;
     }
@@ -82,7 +82,7 @@ class Blueprint
     /**
      * @return string
      */
-    public function table()
+    public function table(): string
     {
         return $this->table;
     }
@@ -90,7 +90,7 @@ class Blueprint
     /**
      * @return string
      */
-    public function qualifiedTable()
+    public function qualifiedTable(): string
     {
         return $this->schema().'.'.$this->table();
     }
@@ -100,7 +100,7 @@ class Blueprint
      *
      * @return $this
      */
-    public function withColumn(Fluent $column)
+    public function withColumn(Fluent $column): self
     {
         $this->columns[$column->name] = $column;
 
@@ -110,7 +110,7 @@ class Blueprint
     /**
      * @return \Illuminate\Support\Fluent[]
      */
-    public function columns()
+    public function columns(): array
     {
         return $this->columns;
     }
@@ -120,7 +120,7 @@ class Blueprint
      *
      * @return bool
      */
-    public function hasColumn($name)
+    public function hasColumn(string $name): bool
     {
         return array_key_exists($name, $this->columns);
     }
@@ -130,7 +130,7 @@ class Blueprint
      *
      * @return \Illuminate\Support\Fluent
      */
-    public function column($name)
+    public function column(string $name): Fluent
     {
         if (! $this->hasColumn($name)) {
             throw new \InvalidArgumentException("Column [$name] does not belong to table [{$this->qualifiedTable()}]");
@@ -144,7 +144,7 @@ class Blueprint
      *
      * @return $this
      */
-    public function withIndex(Fluent $index)
+    public function withIndex(Fluent $index): self
     {
         $this->indexes[] = $index;
 
@@ -158,7 +158,7 @@ class Blueprint
     /**
      * @return \Illuminate\Support\Fluent[]
      */
-    public function indexes()
+    public function indexes(): array
     {
         return $this->indexes;
     }
@@ -168,7 +168,7 @@ class Blueprint
      *
      * @return $this
      */
-    public function withRelation(Fluent $index)
+    public function withRelation(Fluent $index): self
     {
         $this->relations[] = $index;
 
@@ -178,7 +178,7 @@ class Blueprint
     /**
      * @return \Illuminate\Support\Fluent[]
      */
-    public function relations()
+    public function relations(): array
     {
         return $this->relations;
     }
@@ -188,7 +188,7 @@ class Blueprint
      *
      * @return $this
      */
-    public function withPrimaryKey(Fluent $primaryKey)
+    public function withPrimaryKey(Fluent $primaryKey): self
     {
         $this->primaryKey = $primaryKey;
 
@@ -198,7 +198,7 @@ class Blueprint
     /**
      * @return \Illuminate\Support\Fluent
      */
-    public function primaryKey()
+    public function primaryKey(): Fluent
     {
         if ($this->primaryKey) {
             return $this->primaryKey;
@@ -216,7 +216,7 @@ class Blueprint
     /**
      * @return bool
      */
-    public function hasCompositePrimaryKey()
+    public function hasCompositePrimaryKey(): bool
     {
         return count($this->primaryKey->columns) > 1;
     }
@@ -224,7 +224,7 @@ class Blueprint
     /**
      * @return string
      */
-    public function connection()
+    public function connection(): string
     {
         return $this->connection;
     }
@@ -235,7 +235,7 @@ class Blueprint
      *
      * @return bool
      */
-    public function is($database, $table)
+    public function is(string $database, string $table): bool
     {
         return $database == $this->schema() && $table == $this->table();
     }
@@ -245,7 +245,7 @@ class Blueprint
      *
      * @return array
      */
-    public function references(self $table)
+    public function references(self $table): array
     {
         $references = [];
 
@@ -264,7 +264,7 @@ class Blueprint
      *
      * @return bool
      */
-    public function isUniqueKey(Fluent $constraint)
+    public function isUniqueKey(Fluent $constraint): bool
     {
         foreach ($this->unique as $index) {
 
@@ -282,7 +282,7 @@ class Blueprint
     /**
      * @return bool
      */
-    public function isView()
+    public function isView(): bool
     {
         return $this->isView;
     }

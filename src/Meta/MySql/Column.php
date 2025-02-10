@@ -16,12 +16,12 @@ class Column implements \Reliese\Meta\Column
     /**
      * @var array
      */
-    protected $metadata;
+    protected array $metadata;
 
     /**
      * @var array
      */
-    protected $metas = [
+    protected array $metas = [
         'type', 'name', 'autoincrement', 'nullable', 'default', 'comment',
     ];
 
@@ -41,7 +41,7 @@ class Column implements \Reliese\Meta\Column
      *
      * @param array $metadata
      */
-    public function __construct($metadata = [])
+    public function __construct(array $metadata = [])
     {
         $this->metadata = $metadata;
     }
@@ -49,7 +49,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @return \Illuminate\Support\Fluent
      */
-    public function normalize()
+    public function normalize():Fluent
     {
         $attributes = new Fluent();
 
@@ -63,7 +63,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseType(Fluent $attributes)
+    protected function parseType(Fluent $attributes):void
     {
         $type = $this->get('Type', 'string');
 
@@ -92,7 +92,7 @@ class Column implements \Reliese\Meta\Column
      * @param string $precision
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parsePrecision($databaseType, $precision, Fluent $attributes)
+    protected function parsePrecision(string $databaseType, string $precision, Fluent $attributes):void
     {
         $precision = explode(',', str_replace("'", '', $precision));
 
@@ -127,7 +127,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseName(Fluent $attributes)
+    protected function parseName(Fluent $attributes):void
     {
         $attributes['name'] = $this->get('Field');
     }
@@ -135,7 +135,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseAutoincrement(Fluent $attributes)
+    protected function parseAutoincrement(Fluent $attributes):void
     {
         if ($this->same('Extra', 'auto_increment')) {
             $attributes['autoincrement'] = true;
@@ -145,7 +145,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseNullable(Fluent $attributes)
+    protected function parseNullable(Fluent $attributes):void
     {
         $attributes['nullable'] = $this->same('Null', 'YES');
     }
@@ -153,7 +153,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseDefault(Fluent $attributes)
+    protected function parseDefault(Fluent $attributes):void
     {
         $attributes['default'] = $this->get('Default');
     }
@@ -161,7 +161,7 @@ class Column implements \Reliese\Meta\Column
     /**
      * @param \Illuminate\Support\Fluent $attributes
      */
-    protected function parseComment(Fluent $attributes)
+    protected function parseComment(Fluent $attributes):void
     {
         $attributes['comment'] = $this->get('Comment');
     }
@@ -172,7 +172,7 @@ class Column implements \Reliese\Meta\Column
      *
      * @return mixed
      */
-    protected function get($key, $default = null)
+    protected function get(string $key, mixed $default = null):mixed
     {
         return Arr::get($this->metadata, $key, $default);
     }
@@ -183,7 +183,7 @@ class Column implements \Reliese\Meta\Column
      *
      * @return bool
      */
-    protected function same($key, $value)
+    protected function same(string $key, string $value):bool
     {
         return strcasecmp($this->get($key, ''), $value) === 0;
     }

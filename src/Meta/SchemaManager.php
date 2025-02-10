@@ -60,7 +60,7 @@ class SchemaManager implements IteratorAggregate
     /**
      * Load all schemas from this connection.
      */
-    public function boot()
+    public function boot(): void
     {
         if (! $this->hasMapping()) {
             throw new RuntimeException("There is no Schema Mapper registered for [{$this->type()}] connection.");
@@ -78,7 +78,7 @@ class SchemaManager implements IteratorAggregate
      *
      * @return \Reliese\Meta\Schema
      */
-    public function make($schema)
+    public function make(string $schema): Schema
     {
         if (array_key_exists($schema, $this->schemas)) {
             return $this->schemas[$schema];
@@ -92,7 +92,7 @@ class SchemaManager implements IteratorAggregate
      *
      * @return \Reliese\Meta\Schema
      */
-    protected function makeMapper($schema)
+    protected function makeMapper(string $schema): Schema
     {
         $mapper = $this->getMapper();
 
@@ -102,7 +102,7 @@ class SchemaManager implements IteratorAggregate
     /**
      * @return string
      */
-    protected function getMapper()
+    protected function getMapper(): string
     {
         return static::$lookup[$this->type()];
     }
@@ -110,7 +110,7 @@ class SchemaManager implements IteratorAggregate
     /**
      * @return string
      */
-    protected function type()
+    protected function type(): string
     {
         return get_class($this->connection);
     }
@@ -118,7 +118,7 @@ class SchemaManager implements IteratorAggregate
     /**
      * @return bool
      */
-    protected function hasMapping()
+    protected function hasMapping(): bool
     {
         return array_key_exists($this->type(), static::$lookup);
     }
@@ -129,7 +129,7 @@ class SchemaManager implements IteratorAggregate
      * @param string $connection
      * @param string $mapper
      */
-    public static function register($connection, $mapper)
+    public static function register(string $connection, string $mapper): void
     {
         static::$lookup[$connection] = $mapper;
     }
@@ -139,7 +139,7 @@ class SchemaManager implements IteratorAggregate
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): ArrayIterator
     {
         return new ArrayIterator($this->schemas);
     }

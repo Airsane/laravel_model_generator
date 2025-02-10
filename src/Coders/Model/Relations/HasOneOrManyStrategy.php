@@ -16,7 +16,7 @@ class HasOneOrManyStrategy implements Relation
     /**
      * @var \Reliese\Coders\Model\Relation
      */
-    protected $relation;
+    protected Relation $relation;
 
     /**
      * HasManyWriter constructor.
@@ -40,15 +40,15 @@ class HasOneOrManyStrategy implements Relation
     /**
      * @return string
      */
-    public function hint()
-    {
+    public function hint():string
+    {   
         return $this->relation->hint();
     }
 
     /**
      * @return string
      */
-    public function name()
+    public function name():string
     {
         return $this->relation->name();
     }
@@ -56,7 +56,7 @@ class HasOneOrManyStrategy implements Relation
     /**
      * @return string
      */
-    public function body()
+    public function body():string
     {
         return $this->relation->body();
     }
@@ -64,7 +64,7 @@ class HasOneOrManyStrategy implements Relation
     /**
      * @return string
      */
-    public function returnType()
+    public function returnType():string
     {
         return get_class($this->relation) === HasMany::class ?
             \Illuminate\Database\Eloquent\Relations\HasMany::class :

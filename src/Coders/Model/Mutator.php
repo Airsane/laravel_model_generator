@@ -14,24 +14,24 @@ class Mutator
     /**
      * @var \Closure
      */
-    protected $condition;
+    protected \Closure $condition;
 
     /**
      * @var string
      */
-    protected $name;
+    protected string $name;
 
     /**
      * @var string
      */
-    protected $body;
+    protected string $body;
 
     /**
      * @param \Closure $condition
      *
      * @return $this
      */
-    public function when(\Closure $condition)
+    public function when(\Closure $condition): self
     {
         $this->condition = $condition;
 
@@ -44,7 +44,7 @@ class Mutator
      *
      * @return mixed
      */
-    public function applies($column, Blueprint $blueprint)
+    public function applies(string $column, Blueprint $blueprint): bool
     {
         return call_user_func($this->condition, $column, $blueprint);
     }
@@ -54,7 +54,7 @@ class Mutator
      *
      * @return $this
      */
-    public function name(\Closure $name)
+    public function name(\Closure $name): self
     {
         $this->name = $name;
 
@@ -67,7 +67,7 @@ class Mutator
      *
      * @return string
      */
-    public function getName($attribute, Model $model)
+    public function getName(string $attribute, Model $model): string
     {
         return call_user_func($this->name, $attribute, $model);
     }
@@ -77,7 +77,7 @@ class Mutator
      *
      * @return $this
      */
-    public function body(\Closure $body)
+    public function body(\Closure $body): self
     {
         $this->body = $body;
 
@@ -90,7 +90,7 @@ class Mutator
      *
      * @return string
      */
-    public function getBody($attribute, Model $model)
+    public function getBody(string $attribute, Model $model): string
     {
         return call_user_func($this->body, $attribute, $model);
     }

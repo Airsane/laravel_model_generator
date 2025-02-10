@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Reliese\Meta\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
-
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 /**
  * Created by rwdim from cristians MySql original.
  * Date: 25/08/18 04:13 PM.
@@ -17,27 +17,27 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @var string
      */
-    protected $schema;
+    protected string $schema;
 
     /**
      * @var \Illuminate\Database\PostgresConnection
      */
-    protected $connection;
+    protected Connection $connection;
 
     /**
      * @var bool
      */
-    protected $loaded = false;
+    protected bool $loaded = false;
 
     /**
      * @var \Reliese\Meta\Blueprint[]
      */
-    protected $tables = [];
+    protected array $tables = [];
 
     /**
      * @var mixed|null
      */
-    protected $schema_database = null;
+    protected mixed $schema_database = null;
 
     /**
      * Mapper constructor.
@@ -45,7 +45,7 @@ class Schema implements \Reliese\Meta\Schema
      * @param string $schema
      * @param \Illuminate\Database\PostgresConnection $connection
      */
-    public function __construct($schema, $connection)
+    public function __construct(string $schema, Connection $connection)
     {
         $this->schema_database = Config::get("database.connections.pgsql.schema");
         if (!$this->schema_database){
@@ -61,7 +61,7 @@ class Schema implements \Reliese\Meta\Schema
      * @return \Doctrine\DBAL\Schema\AbstractSchemaManager
      * @todo: Use Doctrine instead of raw database queries
      */
-    public function manager()
+    public function manager():AbstractSchemaManager
     {
         return $this->connection->getDoctrineSchemaManager();
     }
@@ -69,7 +69,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * Loads schema's tables' information from the database.
      */
-    protected function load()
+    protected function load():void
     {
         // Note that "schema" refers to the database name,
         // not a pgsql schema.
@@ -89,7 +89,7 @@ class Schema implements \Reliese\Meta\Schema
      *
      * @return array
      */
-    protected function fetchTables()
+    protected function fetchTables():array
     {
         $rows = $this->arraify($this->connection->select(
             "SELECT * FROM pg_tables where schemaname='$this->schema_database'"
@@ -102,7 +102,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @param \Reliese\Meta\Blueprint $blueprint
      */
-    protected function fillColumns(Blueprint $blueprint)
+    protected function fillColumns(Blueprint $blueprint):void
     {
         $rows = $this->arraify($this->connection->select(
             'SELECT * FROM information_schema.columns '.
@@ -121,7 +121,7 @@ class Schema implements \Reliese\Meta\Schema
      *
      * @return \Illuminate\Support\Fluent
      */
-    protected function parseColumn($metadata)
+    protected function parseColumn(array $metadata):Fluent
     {
         return (new Column($metadata))->normalize();
     }
@@ -129,7 +129,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @param \Reliese\Meta\Blueprint $blueprint
      */
-    protected function fillConstraints(Blueprint $blueprint)
+    protected function fillConstraints(Blueprint $blueprint):void
     {
         $sql = '
         SELECT child.attname, p.contype, p.conname,
@@ -165,7 +165,7 @@ class Schema implements \Reliese\Meta\Schema
      * @param $data
      * @return mixed
      */
-    protected function arraify($data)
+    protected function arraify(mixed $data):mixed
     {
         return json_decode(json_encode($data), true);
     }
@@ -296,7 +296,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @return string
      */
-    public function schema()
+    public function schema():string
     {
         return $this->schema;
     }
@@ -306,7 +306,7 @@ class Schema implements \Reliese\Meta\Schema
      *
      * @return bool
      */
-    public function has($table)
+    public function has(string $table):bool
     {
         return array_key_exists($table, $this->tables);
     }
@@ -314,7 +314,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @return \Reliese\Meta\Blueprint[]
      */
-    public function tables()
+    public function tables():array
     {
         return $this->tables;
     }
@@ -324,7 +324,7 @@ class Schema implements \Reliese\Meta\Schema
      *
      * @return \Reliese\Meta\Blueprint
      */
-    public function table($table)
+    public function table(string $table):Blueprint
     {
         if (! $this->has($table)) {
             throw new \InvalidArgumentException("Table [$table] does not belong to schema [{$this->schema}]");
@@ -336,7 +336,7 @@ class Schema implements \Reliese\Meta\Schema
     /**
      * @return \Illuminate\Database\MySqlConnection
      */
-    public function connection()
+    public function connection():Connection
     {
         return $this->connection;
     }
@@ -346,7 +346,7 @@ class Schema implements \Reliese\Meta\Schema
      *
      * @return array
      */
-    public function referencing(Blueprint $table)
+    public function referencing(Blueprint $table):array
     {
         $references = [];
 

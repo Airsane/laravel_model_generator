@@ -46,17 +46,17 @@ abstract class HasOneOrMany implements Relation
     /**
      * @return string
      */
-    abstract public function hint();
+    abstract public function hint():string;
 
     /**
      * @return string
      */
-    abstract public function name();
+    abstract public function name():string;
 
     /**
      * @return string
      */
-    public function body()
+    public function body():string
     {
         $body = 'return $this->'.$this->method().'(';
 
@@ -84,7 +84,7 @@ abstract class HasOneOrMany implements Relation
     /**
      * @return string
      */
-    abstract protected function method();
+    abstract protected function method():string;
 
     /**
      * @return bool
@@ -99,7 +99,7 @@ abstract class HasOneOrMany implements Relation
     /**
      * @return string
      */
-    protected function foreignKey()
+    protected function foreignKey():string
     {
         return $this->command->columns[0];
     }
@@ -107,7 +107,7 @@ abstract class HasOneOrMany implements Relation
     /**
      * @return bool
      */
-    protected function needsLocalKey()
+    protected function needsLocalKey():bool
     {
         return $this->parent->getPrimaryKey() != $this->localKey();
     }
@@ -115,7 +115,7 @@ abstract class HasOneOrMany implements Relation
     /**
      * @return string
      */
-    protected function localKey()
+    protected function localKey():string
     {
         return $this->command->references[0];
     }

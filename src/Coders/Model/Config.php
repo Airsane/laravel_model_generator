@@ -15,14 +15,14 @@ class Config
     /**
      * @var array
      */
-    protected $config;
+    protected array $config;
 
     /**
      * ModelConfig constructor.
      *
      * @param array $config
      */
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
         $this->config = $config;
     }
@@ -34,7 +34,7 @@ class Config
      *
      * @return mixed
      */
-    public function get(Blueprint $blueprint, $key, $default = null)
+    public function get(Blueprint $blueprint, string $key, mixed $default = null):mixed
     {
         $priorityKeys = [
             "@connections.{$blueprint->connection()}.{$blueprint->table()}.$key",

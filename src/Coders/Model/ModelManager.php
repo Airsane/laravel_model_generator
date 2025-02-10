@@ -16,12 +16,12 @@ class ModelManager implements IteratorAggregate
     /**
      * @var \Reliese\Coders\Model\Factory
      */
-    protected $factory;
+    protected Factory $factory;
 
     /**
      * @var \Reliese\Coders\Model\Model[]
      */
-    protected $models = [];
+    protected array $models = [];
 
     /**
      * ModelManager constructor.
@@ -41,7 +41,7 @@ class ModelManager implements IteratorAggregate
      *
      * @return \Reliese\Coders\Model\Model
      */
-    public function make($schema, $table, $mutators = [], $withRelations = true)
+    public function make(string $schema, string $table, array $mutators = [], bool $withRelations = true): Model
     {
         $mapper = $this->factory->makeSchema($schema);
 
@@ -65,7 +65,7 @@ class ModelManager implements IteratorAggregate
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): ArrayIterator
     {
         return new ArrayIterator($this->models);
     }

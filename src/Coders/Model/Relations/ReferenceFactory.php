@@ -8,23 +8,26 @@
 namespace Reliese\Coders\Model\Relations;
 
 use Illuminate\Support\Str;
+use Reliese\Coders\Model\Model;
+use Illuminate\Support\Fluent;
+use Reliese\Meta\Blueprint;
 
 class ReferenceFactory
 {
     /**
      * @var array
      */
-    protected $related;
+    protected array $related;
 
     /**
      * @var \Reliese\Coders\Model\Model
      */
-    protected $parent;
+    protected Model $parent;
 
     /**
      * @var \Reliese\Coders\Model\Model[]
      */
-    protected $references = [];
+    protected array $references = [];
 
     /**
      * ReferenceFactory constructor.
@@ -32,7 +35,7 @@ class ReferenceFactory
      * @param array $related
      * @param \Reliese\Coders\Model\Model $parent
      */
-    public function __construct($related, $parent)
+    public function __construct(array $related, Model $parent)
     {
         $this->related = (array) $related;
         $this->parent = $parent;
@@ -41,7 +44,7 @@ class ReferenceFactory
     /**
      * @return \Reliese\Coders\Model\Relation[]
      */
-    public function make()
+    public function make():array
     {
         if ($this->hasPivot()) {
             $relations = [];
@@ -60,7 +63,7 @@ class ReferenceFactory
     /**
      * @return bool
      */
-    protected function hasPivot()
+    protected function hasPivot():bool
     {
         $pivot = $this->getRelatedBlueprint()->table();
         $firstRecord = $this->parent->getRecordName();
@@ -97,7 +100,7 @@ class ReferenceFactory
     /**
      * @return \Illuminate\Support\Fluent
      */
-    protected function getRelatedReference()
+    protected function getRelatedReference():Fluent
     {
         return $this->related['reference'];
     }
@@ -105,7 +108,7 @@ class ReferenceFactory
     /**
      * @return \Reliese\Coders\Model\Model
      */
-    protected function getRelatedModel()
+    protected function getRelatedModel():Model
     {
         return $this->related['model'];
     }
@@ -113,7 +116,7 @@ class ReferenceFactory
     /**
      * @return \Reliese\Meta\Blueprint
      */
-    protected function getRelatedBlueprint()
+    protected function getRelatedBlueprint():Blueprint
     {
         return $this->related['blueprint'];
     }

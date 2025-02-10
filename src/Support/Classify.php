@@ -18,7 +18,7 @@ class Classify
      *
      * @return string
      */
-    public function annotation($name, $value)
+    public function annotation(string $name, string $value): string
     {
         return "\n * @$name $value";
     }
@@ -31,7 +31,7 @@ class Classify
      *
      * @return string
      */
-    public function constant($name, $value)
+    public function constant(string $name, mixed $value): string
     {
         $value = Dumper::export($value);
 
@@ -47,7 +47,7 @@ class Classify
      *
      * @return string
      */
-    public function field($name, $value, $options = [])
+    public function field(string $name, mixed $value, array $options = []): string
     {
         $value = Dumper::export($value);
         $before = Arr::get($options, 'before', '');
@@ -64,7 +64,7 @@ class Classify
      *
      * @return string
      */
-    public function method($name, $body, $options = [])
+    public function method(string $name, string $body, array $options = []): string
     {
         $visibility = Arr::get($options, 'visibility', 'public');
         $returnType = Arr::get($options, 'returnType', null);
@@ -73,7 +73,7 @@ class Classify
         return "\n\t$visibility function $name()$formattedReturnType\n\t{\n\t\t$body\n\t}\n";
     }
 
-    public function mixin($class)
+    public function mixin(string $class): string
     {
         if (Str::startsWith($class, '\\')) {
             $class = Str::replaceFirst('\\', '', $class);

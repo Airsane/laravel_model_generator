@@ -14,12 +14,12 @@ class Mutation
     /**
      * @var string
      */
-    protected $name;
+    protected string $name;
 
     /**
      * @var string
      */
-    protected $body;
+    protected string $body;
 
     /**
      * Mutation constructor.
@@ -27,7 +27,7 @@ class Mutation
      * @param string $name
      * @param string $body
      */
-    public function __construct($name, $body)
+    public function __construct(string $name, string $body)
     {
         $this->name = $name;
         $this->body = $body;
@@ -36,7 +36,7 @@ class Mutation
     /**
      * @return string
      */
-    public function name()
+    public function name(): string
     {
         return 'get'.Str::studly($this->name).'Attribute';
     }
@@ -44,7 +44,7 @@ class Mutation
     /**
      * @return string
      */
-    public function body()
+    public function body(): string
     {
         return 'return '.$this->body.';';
     }

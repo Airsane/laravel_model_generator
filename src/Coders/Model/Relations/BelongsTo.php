@@ -18,17 +18,17 @@ class BelongsTo implements Relation
     /**
      * @var \Illuminate\Support\Fluent
      */
-    protected $command;
+    protected Fluent $command;
 
     /**
      * @var \Reliese\Coders\Model\Model
      */
-    protected $parent;
+    protected Model $parent;
 
     /**
      * @var \Reliese\Coders\Model\Model
      */
-    protected $related;
+    protected Model $related;
 
     /**
      * BelongsToWriter constructor.
@@ -47,7 +47,7 @@ class BelongsTo implements Relation
     /**
      * @return string
      */
-    public function name()
+    public function name():string
     {
         switch ($this->parent->getRelationNameStrategy()) {
             case 'foreign_key':
@@ -73,7 +73,7 @@ class BelongsTo implements Relation
     /**
      * @return string
      */
-    public function body()
+    public function body():string
     {
         $body = 'return $this->belongsTo(';
 
@@ -116,7 +116,7 @@ class BelongsTo implements Relation
     /**
      * @return string
      */
-    public function hint()
+    public function hint():string
     {
         $base =  $this->related->getQualifiedUserClassName();
 
@@ -130,7 +130,7 @@ class BelongsTo implements Relation
     /**
      * @return string
      */
-    public function returnType()
+    public function returnType():string
     {
         return \Illuminate\Database\Eloquent\Relations\BelongsTo::class;
     }
@@ -138,7 +138,7 @@ class BelongsTo implements Relation
     /**
      * @return bool
      */
-    protected function needsForeignKey()
+    protected function needsForeignKey():bool
     {
         $defaultForeignKey = $this->related->getRecordName().'_id';
 
@@ -150,7 +150,7 @@ class BelongsTo implements Relation
      *
      * @return string
      */
-    protected function foreignKey($index = 0)
+    protected function foreignKey(int $index = 0):string
     {
         return $this->command->columns[$index];
     }
@@ -160,7 +160,7 @@ class BelongsTo implements Relation
      *
      * @return string
      */
-    protected function qualifiedForeignKey($index = 0)
+    protected function qualifiedForeignKey(int $index = 0):string
     {
         return $this->parent->getTable().'.'.$this->foreignKey($index);
     }
@@ -168,7 +168,7 @@ class BelongsTo implements Relation
     /**
      * @return bool
      */
-    protected function needsOtherKey()
+    protected function needsOtherKey():bool
     {
         $defaultOtherKey = $this->related->getPrimaryKey();
 
@@ -180,7 +180,7 @@ class BelongsTo implements Relation
      *
      * @return string
      */
-    protected function otherKey($index = 0)
+    protected function otherKey(int $index = 0):string
     {
         return $this->command->references[$index];
     }
@@ -190,7 +190,7 @@ class BelongsTo implements Relation
      *
      * @return string
      */
-    protected function qualifiedOtherKey($index = 0)
+    protected function qualifiedOtherKey(int $index = 0):string
     {
         return $this->related->getTable().'.'.$this->otherKey($index);
     }
@@ -200,7 +200,7 @@ class BelongsTo implements Relation
      *
      * @return bool
      */
-    protected function hasCompositeOtherKey()
+    protected function hasCompositeOtherKey():bool
     {
         return count($this->command->references) > 1;
     }
@@ -208,7 +208,7 @@ class BelongsTo implements Relation
     /**
      * @return bool
      */
-    private function isNullable()
+    private function isNullable():bool
     {
         return (bool) $this->parent->getBlueprint()->column($this->foreignKey())->get('nullable');
     }

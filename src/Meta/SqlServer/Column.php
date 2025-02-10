@@ -14,7 +14,7 @@ class Column implements \Reliese\Meta\Column
 	/**
 	 * @var array
 	 */
-	protected $metas = [
+	protected array $metas = [
 		'type',
 		'name',
 		'autoincrement',
@@ -27,7 +27,7 @@ class Column implements \Reliese\Meta\Column
 	 * @var array
 	 * SQLServer-specific type mappings
 	 */
-	public static $mappings = [
+	public static array $mappings = [
 		'string' => ['varchar', 'nvarchar', 'char', 'nchar', 'text', 'ntext', 'xml', 'uniqueidentifier'],
 		'datetime' => ['datetime', 'datetime2', 'datetimeoffset', 'smalldatetime', 'date', 'time'],
 		'int' => ['int', 'bigint', 'smallint', 'tinyint', 'bit'],
@@ -41,7 +41,7 @@ class Column implements \Reliese\Meta\Column
 	 *
 	 * @param array $metadata
 	 */
-	public function __construct($metadata = [])
+	public function __construct(array $metadata = [])
 	{
 		$this->metadata = $metadata;
 	}
@@ -49,7 +49,7 @@ class Column implements \Reliese\Meta\Column
 	/**
 	 * @return \Illuminate\Support\Fluent
 	 */
-	public function normalize()
+	public function normalize():Fluent
 	{
 		$attributes = new Fluent();
 
@@ -63,7 +63,7 @@ class Column implements \Reliese\Meta\Column
 	/**
 	 * @param \Illuminate\Support\Fluent $attributes
 	 */
-	protected function parseType(Fluent $attributes)
+	protected function parseType(Fluent $attributes):void
 	{
 		$dataType = $this->get('DATA_TYPE', 'varchar');
 		$attributes['type'] = $dataType;
@@ -81,7 +81,7 @@ class Column implements \Reliese\Meta\Column
 	 * @param string $databaseType
 	 * @param \Illuminate\Support\Fluent $attributes
 	 */
-	protected function parsePrecision($databaseType, Fluent $attributes)
+	protected function parsePrecision(string $databaseType, Fluent $attributes):void
 	{
 		$precision = $this->get('numeric_precision', null);
 		$scale = $this->get('numeric_scale', null);
@@ -106,7 +106,7 @@ class Column implements \Reliese\Meta\Column
 	/**
 	 * @param \Illuminate\Support\Fluent $attributes
 	 */
-	protected function parseName(Fluent $attributes)
+	protected function parseName(Fluent $attributes):void
 	{
 		$attributes['name'] = $this->get('column_name');
 	}
@@ -114,7 +114,7 @@ class Column implements \Reliese\Meta\Column
 	/**
 	 * @param \Illuminate\Support\Fluent $attributes
 	 */
-	protected function parseAutoincrement(Fluent $attributes)
+	protected function parseAutoincrement(Fluent $attributes):void
 	{
 		$isIdentity = $this->get('is_identity');
 		$attributes['autoincrement'] = $isIdentity !== null && (int)$isIdentity === 1;
@@ -123,7 +123,7 @@ class Column implements \Reliese\Meta\Column
 	/**
 	 * @param \Illuminate\Support\Fluent $attributes
 	 */
-	protected function parseNullable(Fluent $attributes)
+	protected function parseNullable(Fluent $attributes):void
 	{
 		$attributes['nullable'] = $this->get('is_nullable') === 'YES';
 	}
@@ -131,7 +131,7 @@ class Column implements \Reliese\Meta\Column
 	/**
 	 * @param \Illuminate\Support\Fluent $attributes
 	 */
-	protected function parseDefault(Fluent $attributes)
+	protected function parseDefault(Fluent $attributes):void
 	{
 		$defaultConstraint = $this->get('column_default', null);
 
@@ -147,7 +147,7 @@ class Column implements \Reliese\Meta\Column
 	/**
 	 * @param \Illuminate\Support\Fluent $attributes
 	 */
-	protected function parseComment(Fluent $attributes)
+	protected function parseComment(Fluent $attributes):void
 	{
 		// SQLServer comments are typically stored in extended properties
 		// This might require additional metadata retrieval
@@ -160,7 +160,7 @@ class Column implements \Reliese\Meta\Column
 	 *
 	 * @return mixed
 	 */
-	protected function get($key, $default = null)
+	protected function get(string $key, mixed $default = null):mixed
 	{
 		return Arr::get($this->metadata, strtoupper($key), $default);
 	}
