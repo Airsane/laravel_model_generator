@@ -7,6 +7,9 @@
         "issues": "https://github.com/Airsane/laravel_model_generator/issues",
         "source": "https://github.com/Airsane/laravel_model_generator"
     },
+  	"scripts": {
+	  "test": "phpunit"
+	},
     "license": "MIT",
     "authors": [
         {
