@@ -603,7 +603,7 @@ class Factory
      *
      * @return mixed|\Reliese\Coders\Model\Config
      */
-    public function config(Blueprint $blueprint = null, $key = null, $default = null)
+    public function config(?Blueprint $blueprint = null, $key = null, $default = null)
     {
         if (is_null($blueprint)) {
             return $this->config;

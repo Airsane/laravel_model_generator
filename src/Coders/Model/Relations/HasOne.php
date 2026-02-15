@@ -16,7 +16,7 @@ class HasOne extends HasOneOrMany
      */
     public function hint()
     {
-        return $this->related->getQualifiedUserClassName();
+        return $this->related->getQualifiedUserClassName() . '|null';
     }
 
     /**
